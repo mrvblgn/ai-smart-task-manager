@@ -5,6 +5,7 @@ import { env } from "./config/env.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import userRoutes from "./modules/user/user.routes.js";
 import taskRoutes from "./modules/task/task.routes.js";
+import aiRoutes from "./modules/ai/ai.routes.js";
 
 const app: Express = express();
 
@@ -111,6 +112,12 @@ app.use("/api/users", userRoutes);
  * Task-related endpoints
  */
 app.use("/api/tasks", taskRoutes);
+
+/**
+ * Route: AI
+ * AI-powered features (description generation, categorization)
+ */
+app.use("/api/ai", aiRoutes);
 
 /**
  * Route: 404 Handler
