@@ -4,7 +4,7 @@ export type TaskStatus = "todo" | "in_progress" | "done";
 export type TaskPriority = "low" | "medium" | "high";
 
 export interface Task {
-	_id: string;
+	id: string;
 	title: string;
 	description: string;
 	status: TaskStatus;
@@ -12,8 +12,18 @@ export interface Task {
 	dueDate?: Date;
 	startDate?: Date;
 	ownerId: string;
-	createdAt: string;
-	updatedAt: string;
+}
+
+interface ApiTask {
+	id?: string;
+	_id?: string;
+	title: string;
+	description: string;
+	status: TaskStatus;
+	priority: TaskPriority;
+	dueDate?: Date;
+	startDate?: Date;
+	ownerId: string;
 }
 
 export interface CreateTaskInput {
@@ -43,13 +53,13 @@ export interface ListTasksQuery {
 
 export interface TaskResponse {
 	success: boolean;
-	data: Task;
+	data: ApiTask;
 	message?: string;
 }
 
 export interface TaskListResponse {
 	success: boolean;
-	data: Task[];
+	data: ApiTask[];
 	message?: string;
 }
 
@@ -70,12 +80,33 @@ export interface CategorizeTaskResponse {
 }
 
 class TaskService {
+	private normalizeTask(task: ApiTask): Task {
+		return {
+			id: task.id ?? task._id ?? "",
+			title: task.title,
+			description: task.description,
+			status: task.status,
+			priority: task.priority,
+			dueDate: task.dueDate,
+			startDate: task.startDate,
+			ownerId: task.ownerId,
+		};
+	}
+
+	private normalizePayload<T extends CreateTaskInput | UpdateTaskInput>(input: T): T {
+		const payload = { ...input };
+		if (payload.description !== undefined && !payload.description.trim()) {
+			delete payload.description;
+		}
+		return payload;
+	}
+
 	async listTasks(filters?: ListTasksQuery): Promise<Task[]> {
 		try {
 			const response = await api.get<TaskListResponse>("/tasks", {
 				params: filters,
 			});
-			return response.data.data;
+			return response.data.data.map((task) => this.normalizeTask(task));
 		} catch (error) {
 			throw new Error(`Failed to list tasks: ${error}`);
 		}
@@ -84,7 +115,7 @@ class TaskService {
 	async getTask(id: string): Promise<Task> {
 		try {
 			const response = await api.get<TaskResponse>(`/tasks/${id}`);
-			return response.data.data;
+			return this.normalizeTask(response.data.data);
 		} catch (error) {
 			throw new Error(`Failed to get task: ${error}`);
 		}
@@ -92,8 +123,9 @@ class TaskService {
 
 	async createTask(input: CreateTaskInput): Promise<Task> {
 		try {
-			const response = await api.post<TaskResponse>("/tasks", input);
-			return response.data.data;
+			const payload = this.normalizePayload(input);
+			const response = await api.post<TaskResponse>("/tasks", payload);
+			return this.normalizeTask(response.data.data);
 		} catch (error) {
 			throw new Error(`Failed to create task: ${error}`);
 		}
@@ -101,8 +133,9 @@ class TaskService {
 
 	async updateTask(id: string, input: UpdateTaskInput): Promise<Task> {
 		try {
-			const response = await api.patch<TaskResponse>(`/tasks/${id}`, input);
-			return response.data.data;
+			const payload = this.normalizePayload(input);
+			const response = await api.patch<TaskResponse>(`/tasks/${id}`, payload);
+			return this.normalizeTask(response.data.data);
 		} catch (error) {
 			throw new Error(`Failed to update task: ${error}`);
 		}

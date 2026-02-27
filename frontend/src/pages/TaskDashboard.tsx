@@ -32,6 +32,8 @@ export function TaskDashboard() {
 	const isAuthenticated = useAuthStore(
 		(state: AuthStore) => state.isAuthenticated()
 	);
+	const [generatingDescription, setGeneratingDescription] =
+		useState<boolean>(false);
 
 	function handleLogout() {
 		logout();
@@ -104,8 +106,34 @@ export function TaskDashboard() {
 		}
 	}
 
+	async function generateDescriptionAI() {
+		if (!formData.title.trim()) {
+			setError("Lütfen başlık girin");
+			return;
+		}
+
+		try {
+			setGeneratingDescription(true);
+			setError(null);
+			const description = await taskService.generateDescription(
+				formData.title,
+				formData.priority || "medium"
+			);
+			setFormData((prev) => ({
+				...prev,
+				description,
+			}));
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "Açıklama ürütülemedi"
+			);
+		} finally {
+			setGeneratingDescription(false);
+		}
+	}
+
 	function handleEdit(id: string) {
-		const task = tasks.find((t) => t._id === id);
+		const task = tasks.find((t) => t.id === id);
 		if (task) {
 			setFormData({
 				title: task.title,
@@ -121,7 +149,7 @@ export function TaskDashboard() {
 	}
 
 	function handleStatusChange(id: string, status: string) {
-		const task = tasks.find((t) => t._id === id);
+		const task = tasks.find((t) => t.id === id);
 		if (task) {
 			handleEdit(id);
 			setFormData((prev) => ({
@@ -230,15 +258,31 @@ export function TaskDashboard() {
 
 					<div className="form-group">
 						<label>Açıklama</label>
+					</div>
+					<div className="description-group">
 						<textarea
 							value={formData.description || ""}
 							onChange={(e) =>
 								setFormData({ ...formData, description: e.target.value })
 							}
-							disabled={isLoading}
+							disabled={isLoading || generatingDescription}
 						/>
+						<button
+							type="button"
+							onClick={generateDescriptionAI}
+							disabled={
+								isLoading ||
+								generatingDescription ||
+								!formData.title.trim()
+							}
+							className="btn btn-secondary"
+							title="Başlığa göre açıklama oluştur"
+						>
+							{generatingDescription
+								? "Oluşturuluyor..."
+								: "✨ AI ile Oluştur"}
+						</button>
 					</div>
-
 					<div className="form-group">
 						<label>Öncelik</label>
 						<select
@@ -282,7 +326,7 @@ export function TaskDashboard() {
 
 			<div className="tasks-list">
 				{filteredTasks.map((task) => (
-					<div key={task._id} className="task-card">
+					<div key={task.id} className="task-card">
 						<div className="task-header">
 							<h3>{task.title}</h3>
 							<span className={`priority-badge priority-${task.priority}`}>
@@ -310,7 +354,7 @@ export function TaskDashboard() {
 								value={task.status}
 								onChange={(e) =>
 									handleStatusChange(
-										task._id,
+										task.id,
 										e.target.value
 									)
 								}
@@ -322,7 +366,7 @@ export function TaskDashboard() {
 							</select>
 
 							<button
-								onClick={() => handleEdit(task._id)}
+								onClick={() => handleEdit(task.id)}
 								className="btn btn-small"
 								disabled={isLoading}
 							>
@@ -330,7 +374,7 @@ export function TaskDashboard() {
 							</button>
 
 							<button
-								onClick={() => handleDelete(task._id)}
+								onClick={() => handleDelete(task.id)}
 								className="btn btn-danger btn-small"
 								disabled={isLoading}
 							>

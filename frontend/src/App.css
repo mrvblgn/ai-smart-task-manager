@@ -317,7 +317,21 @@ body {
   resize: vertical;
   min-height: 100px;
 }
+.description-group {
+	display: flex;
+	gap: 8px;
+	align-items: flex-end;
+}
 
+.description-group textarea {
+	flex: 1;
+	min-height: 80px;
+}
+
+.description-group .btn {
+	white-space: nowrap;
+	padding: 10px 14px;
+}
 /* Tasks List */
 .tasks-list {
   display: grid;

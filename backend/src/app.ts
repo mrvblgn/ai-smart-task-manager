@@ -144,8 +144,8 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     method: req.method,
   });
 
-  // Default error response
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  const typedError = err as Error & { statusCode?: number };
+  const statusCode = typedError.statusCode ?? (res.statusCode === 200 ? 500 : res.statusCode);
   const errorMessage = env.nodeEnv === "production" ? "Internal Server Error" : err.message;
 
   res.status(statusCode).json({
