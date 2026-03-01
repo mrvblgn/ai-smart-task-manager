@@ -24,6 +24,11 @@ ai-smart-task-manager/
 - AI endpoints for description generation and task categorization
 - Premium, responsive UI
 
+## Live Demo
+
+- **Frontend (Vercel)**: https://ai-smart-task-manager-ten.vercel.app/login
+- **Backend (Render)**: https://ai-smart-task-manager-6tus.onrender.com
+
 ## Local Development
 
 ### 1) Clone and install

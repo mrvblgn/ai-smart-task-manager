@@ -90,9 +90,17 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 /**
  * Route: Health Check
  * Simple endpoint to verify API is running
+ * Returns: status, uptime, and current timestamp
  */
 app.get("/api/health", (_req: Request, res: Response) => {
-  res.success({ status: "healthy", timestamp: new Date().toISOString() }, "API is running");
+  res.success(
+    {
+      status: "healthy",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    },
+    "AI Smart Task Manager API is running"
+  );
 });
 
 /**
