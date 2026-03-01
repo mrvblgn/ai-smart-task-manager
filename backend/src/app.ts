@@ -88,6 +88,21 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 });
 
 /**
+ * Route: Root/Welcome
+ * Basic endpoint to confirm API is running
+ */
+app.get("/", (_req: Request, res: Response) => {
+  res.success(
+    {
+      name: "AI Smart Task Manager API",
+      version: "1.0.0",
+      health: "/api/health",
+    },
+    "Welcome to API"
+  );
+});
+
+/**
  * Route: Health Check
  * Simple endpoint to verify API is running
  * Returns: status, uptime, and current timestamp
